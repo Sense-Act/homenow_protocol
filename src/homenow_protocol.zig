@@ -1,20 +1,32 @@
 const std = @import("std");
-const net = @import("sub/net.zig");
+const pair_message = @import("messages/pair_message.zig");
+const expect = std.testing.expect;
 
-pub export fn add(a: i32, b: i32) i32 {
-    return a + b;
-}
+const MessageTask = enum(u8) { get = 0x00, set = 0x01, update = 0x02, pair = 0x03 };
 
-pub fn say_hello() void {
-    const hello = net.hello_world();
-    std.debug.print("{s}", .{hello});
-}
+const MessageType = union(enum) { pair: pair_message.PairMessage };
 
-const testing = std.testing;
-test "basic add functionality" {
-    try testing.expect(add(3, 7) == 10);
-}
+const HomeNowProtocol = struct {
+    version: u16 = 0x0001,
+    message_task: MessageTask,
+    content: MessageType,
 
-test "basic hello" {
-    _ = say_hello();
+    fn serialize(self: *HomeNowProtocol) []u8 {
+        _ = self;
+        return .{ 9, 9 };
+    }
+
+    fn deserialize(content: []const u8) HomeNowProtocol {
+        _ = content;
+
+        const msg_task = MessageTask.get;
+        const msg_type = MessageType{ .pair = pair_message.PairMessage{ .subtask = 0x01, .device_type = [_]u8{1} ** 244 } };
+        return HomeNowProtocol{ .version = 0x0001, .message_task = msg_task, .content = msg_type };
+    }
+};
+
+test "check correct sizes" {
+    const content = [_]u8{ 1, 3, 4, 7 };
+    const home = HomeNowProtocol.deserialize(&content);
+    std.debug.print("{any}", .{home});
 }
