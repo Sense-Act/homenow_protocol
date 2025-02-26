@@ -56,18 +56,27 @@ pub const HomeNowProtocol = struct {
         return content;
     }
 
-    pub fn deserialize(content: []const u8) HomeNowProtocol {
-        _ = content;
+    pub fn deserialize(binary_data: [250]u8) HomeNowProtocol {
+        const version_slice = binary_data[0..2];
+        const version_val: u16 = (@as(u16, version_slice[0]) << 8) | version_slice[1];
+        const version: HomeNowVersion = @enumFromInt(version_val);
+        var current_pos: usize = 2;
 
-        const msg_task = MessageTask.get;
-        const msg_type = MessageType{ .pair = pair_message.PairMessage{
-            .subtask = 0x01,
-            .device_type = [_]u8{1} ** 244,
-        } };
-        return HomeNowProtocol{
-            .message_task = msg_task,
-            .content = msg_type,
+        const message_task: MessageTask = @enumFromInt(binary_data[current_pos]);
+        current_pos += 1;
+
+        // constructing content
+        const homenow_protocol = HomeNowProtocol{
+            .version = version,
+            .message_task = message_task,
+            .content = MessageType{
+                .pair = pair_message.PairMessage{
+                    .subtask = 1,
+                    .device_type = [_]u8{1} ** 244,
+                },
+            },
         };
+        return homenow_protocol;
     }
 };
 
@@ -89,6 +98,10 @@ test "serializiation desirialization equivalence cheking" {
     };
 
     const serialized_data = home.serialize();
-    std.debug.print("Serialized data: {any}\nWith length: {d}", .{ serialized_data, serialized_data.len });
+    std.debug.print("Serialized data: {any}\nWith length: {d}\n\n", .{ serialized_data, serialized_data.len });
     try expect(serialized_data.len == 250);
+
+    const homenow_d = HomeNowProtocol.deserialize(serialized_data);
+    std.debug.print("Deserialized: {any}\n", .{homenow_d});
+    std.debug.print("With content: {any}\n", .{homenow_d.content.pair.device_type});
 }
