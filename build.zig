@@ -34,10 +34,15 @@ pub fn build(b: *std.Build) void {
             .root_module = lib_mod,
         });
         lib_unit_tests.linkLibC();
+        const lldb = b.addSystemCommand(&.{ "lldb", "--" });
+        lldb.addArtifactArg(lib_unit_tests);
 
         const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
 
         const test_step = b.step("test", "Run unit tests");
         test_step.dependOn(&run_lib_unit_tests.step);
+
+        const lldb_step = b.step("debug", "run tests in debug mode");
+        lldb_step.dependOn(&lldb.step);
     }
 }
