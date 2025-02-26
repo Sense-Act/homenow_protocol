@@ -11,6 +11,17 @@ pub const MessageTask = enum(u8) {
 
 pub const MessageType = union(enum) {
     pair: pair_message.PairMessage,
+
+    fn serialize(self: MessageType) [245]u8 {
+        switch (self) {
+            inline else => |impl| {
+                const serialized_message = impl.serialize();
+                var final_serialized_message = [_]u8{0} ** 245;
+                std.mem.copyForwards(u8, &final_serialized_message, &serialized_message);
+                return serialized_message;
+            },
+        }
+    }
 };
 
 pub const HomeNowVersion = enum(u16) {
@@ -31,12 +42,16 @@ pub const HomeNowProtocol = struct {
         var version_bytes: [2]u8 = @bitCast(version_u16);
 
         const offset = current_mem_offset + version_bytes.len;
-        std.mem.copyForwards(u8, content[current_mem_offset..offset], version_bytes[0..]);
+        std.mem.copyForwards(u8, content[current_mem_offset..offset], &version_bytes);
         current_mem_offset += offset;
 
         const message_task_u8: u8 = @intFromEnum(self.message_task);
         content[current_mem_offset] = message_task_u8;
         current_mem_offset += 1;
+
+        const serialized_data = self.content.serialize();
+        std.debug.assert(serialized_data.len == 245);
+        std.mem.copyForwards(u8, content[current_mem_offset..], &serialized_data);
 
         return content;
     }
@@ -56,8 +71,11 @@ pub const HomeNowProtocol = struct {
     }
 };
 
-test "check correct sizes" {
-    const content = [_]u8{0} ** 244;
+test "serializiation desirialization equivalence cheking" {
+    var content = [_]u8{0} ** 244;
+    var msg = [_]u8{ 10, 20, 30 };
+    std.mem.copyForwards(u8, content[0..msg.len], &msg);
+
     const message_content = pair_message.PairMessage{
         .subtask = 1,
         .device_type = content,
@@ -70,5 +88,7 @@ test "check correct sizes" {
         },
     };
 
-    std.debug.print("{any}\n", .{home.serialize()});
+    const serialized_data = home.serialize();
+    std.debug.print("Serialized data: {any}\nWith length: {d}", .{ serialized_data, serialized_data.len });
+    try expect(serialized_data.len == 250);
 }

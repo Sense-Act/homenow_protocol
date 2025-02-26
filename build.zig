@@ -17,7 +17,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    {
+    { // Library
         const lib = b.addLibrary(.{
             .name = name,
             .root_module = lib_mod,
