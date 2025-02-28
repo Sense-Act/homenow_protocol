@@ -4,23 +4,33 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const root_path = b.path("src/homenow_protocol.zig");
+    const root_protocol_path = b.path("src/protocol/homenow_protocol.zig");
+    const root_api_path = b.path("src/api/homenow.zig");
     const name = "homenow_protocol";
 
-    _ = b.addModule(name, .{
-        .root_source_file = root_path,
-    });
-
-    const lib_mod = b.createModule(.{
-        .root_source_file = root_path,
+    const home_now_lib_unexported = b.createModule(.{
+        .root_source_file = root_protocol_path,
         .target = target,
         .optimize = optimize,
     });
 
+    { // Creating module for external usage
+        const home_now_lib = b.createModule(.{
+            .root_source_file = root_protocol_path,
+        });
+
+        _ = b.addModule(name, .{
+            .root_source_file = root_api_path,
+            .imports = &.{
+                .{ .name = "homenow_protocol", .module = home_now_lib },
+            },
+        });
+    }
+
     { // Library
         const lib = b.addLibrary(.{
             .name = name,
-            .root_module = lib_mod,
+            .root_module = home_now_lib_unexported,
             .linkage = .dynamic,
         });
         b.installArtifact(lib);
@@ -31,7 +41,7 @@ pub fn build(b: *std.Build) void {
 
     { // Tests
         const lib_unit_tests = b.addTest(.{
-            .root_module = lib_mod,
+            .root_module = home_now_lib_unexported,
         });
         lib_unit_tests.linkLibC();
         const lldb = b.addSystemCommand(&.{ "lldb", "--" });
