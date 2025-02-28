@@ -15,14 +15,14 @@ pub fn build(b: *std.Build) void {
     });
 
     { // Creating module for external usage
-        const home_now_lib = b.createModule(.{
+        const homenow_protocol_mod = b.createModule(.{
             .root_source_file = root_protocol_path,
         });
 
-        _ = b.addModule(name, .{
+        _ = b.addModule("homenow", .{
             .root_source_file = root_api_path,
             .imports = &.{
-                .{ .name = "homenow_protocol", .module = home_now_lib },
+                .{ .name = name, .module = homenow_protocol_mod },
             },
         });
     }
