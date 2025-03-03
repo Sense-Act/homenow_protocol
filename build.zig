@@ -19,7 +19,7 @@ pub fn build(b: *std.Build) void {
             .root_source_file = root_protocol_path,
         });
 
-        _ = b.addModule("homenow", .{
+        _ = b.addModule("homenow_protocol", .{
             .root_source_file = root_api_path,
             .imports = &.{
                 .{ .name = name, .module = homenow_protocol_mod },
