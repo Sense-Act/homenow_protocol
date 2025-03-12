@@ -1,13 +1,15 @@
 const std = @import("std");
 const expect = std.testing.expect;
 
+const DEVICE_TYPE_LEN = 246;
+
 pub const PairMessage = struct {
     subtask: u8, // 1 B
-    device_type: [246]u8, // 246 B
+    device_type: [DEVICE_TYPE_LEN]u8,
 
     pub fn init(subtask: u8, device_type: []const u8) PairMessage {
-        std.debug.assert(device_type.len <= 246);
-        var content = [_]u8{0} ** 246;
+        std.debug.assert(device_type.len <= DEVICE_TYPE_LEN);
+        var content = [_]u8{0} ** DEVICE_TYPE_LEN;
         std.mem.copyForwards(u8, &content, device_type);
         return .{
             .subtask = subtask,
@@ -26,7 +28,7 @@ pub const PairMessage = struct {
     pub fn deserialize(content: []const u8) PairMessage {
         std.debug.assert(content.len >= 2 and content.len <= 247);
         const subtask = content[0];
-        var device_type = [_]u8{0} ** 246;
+        var device_type = [_]u8{0} ** DEVICE_TYPE_LEN;
         std.mem.copyForwards(u8, &device_type, content[1..]);
 
         return PairMessage{

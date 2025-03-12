@@ -1,16 +1,16 @@
 const std = @import("std");
 
 pub fn build(b: *std.Build) void {
-    // const target = b.standardTargetOptions(.{});
-    // const optimize = b.standardOptimizeOption(.{});
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
 
     const root_path = b.path("src/root.zig");
     const name = "homenow_protocol";
 
     const homenow_protocol_mod = b.addModule(name, .{
         .root_source_file = root_path,
-        .target = b.standardTargetOptions(.{}),
-        .optimize = b.standardOptimizeOption(.{}),
+        .target = target,
+        .optimize = optimize,
     });
 
     { // Library
