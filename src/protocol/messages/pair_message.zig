@@ -1,4 +1,5 @@
 const std = @import("std");
+const conf = @import("../../config.zig");
 const expect = std.testing.expect;
 
 const DEVICE_TYPE_LEN = 246;
@@ -17,8 +18,8 @@ pub const PairMessage = struct {
         };
     }
 
-    pub fn serialize(self: PairMessage) [247]u8 {
-        var content = [_]u8{0} ** 247;
+    pub fn serialize(self: PairMessage) [conf.CONTENT_LEN]u8 {
+        var content = [_]u8{0} ** conf.CONTENT_LEN;
         content[0] = self.subtask;
         std.mem.copyForwards(u8, content[1..], &self.device_type);
 
@@ -26,12 +27,12 @@ pub const PairMessage = struct {
     }
 
     pub fn deserialize(content: []const u8) PairMessage {
-        std.debug.assert(content.len >= 2 and content.len <= 247);
+        std.debug.assert(content.len >= 2 and content.len <= conf.CONTENT_LEN);
         const subtask = content[0];
         var device_type = [_]u8{0} ** DEVICE_TYPE_LEN;
         std.mem.copyForwards(u8, &device_type, content[1..]);
 
-        return PairMessage{
+        return .{
             .subtask = subtask,
             .device_type = device_type,
         };
