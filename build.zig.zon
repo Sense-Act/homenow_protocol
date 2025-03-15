@@ -1,8 +1,7 @@
 .{
-    .name = "homenow_protocol",
+    .name = .homenow_protocol,
     .version = "0.0.0",
-    .dependencies = .{},
-
+    .fingerprint = 0x8e77e7574a261e2b,
     .paths = .{
         "build.zig",
         "build.zig.zon",
@@ -11,4 +10,6 @@
         //"LICENSE",
         //"README.md",
     },
+
+    .dependencies = .{},
 }
